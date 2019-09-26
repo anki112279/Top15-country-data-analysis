@@ -1,0 +1,24 @@
+import re
+import pandas as pd
+import numpy as np
+from pandas import DataFrame
+
+
+def answer_one():
+    energy = pd.read_excel('Energy Indicators.xls', sheet='Energy', skiprows=17, skipfooter=38, usecols=[2,3,4,5], names=['Country','Energy Supply', 'Energy Supply per Capita', '% Renewable'])
+    energy = energy.replace({'...':np.NaN})
+    energy['Energy Supply'] = energy['Energy Supply']*1000000
+    energy['Country'] = energy['Country'].str.replace(r" \(.*\)", "").str.replace(r"[0-9]*" ,"")
+    energy['Country'] = energy['Country'].replace({"Republic of Korea":"South Korea","United States of America": "United States", "United Kingdom of Great Britain and Northern Ireland": "United Kingdom","China, Hong Kong Special Administrative Region": "Hong Kong"})
+    gdp = pd.read_csv('world_bank.csv',skiprows=4)
+    gdp['Country Name'] = gdp['Country Name'].str.replace(r" \(.*\)", "").str.replace(r"[0-9]*" ,"")
+    gdp['Country Name']= gdp['Country Name'].replace({ "Korea, Rep.": "South Korea", "Iran, Islamic Rep.": "Iran", "Hong Kong SAR, China": "Hong Kong"})
+    
+    ScimEn = pd.read_excel('scimagojr-3.xlsx', sheet='Sheet1')
+    ScimEn['Country'] = ScimEn['Country'].str.replace(r" \(.*\)", "").str.replace(r"[0-9]*" ,"")
+    data_c = energy.merge(gdp, left_on = 'Country', right_on= 'Country Name', how='inner').merge(ScimEn, left_on = 'Country', right_on= 'Country', how='inner') 
+    data_c = data_c.set_index(['Country'])
+    data_c = data_c.sort_values(by=['Rank'])
+    data_c = data_c[['Rank', 'Documents', 'Citable documents', 'Citations', 'Self-citations', 'Citations per document', 'H index', 'Energy Supply', 'Energy Supply per Capita', '% Renewable', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015']]
+    return data_c[0:15]
+answer_one()
